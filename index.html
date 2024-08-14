@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Clock</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #clock {
+            font-size: 48px;
+        }
+        #date {
+            font-size: 24px;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #555;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #themePicker {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="clock">Loading...</div>
+    <div id="date">Loading...</div>
+
+    <button class="btn" onclick="switchFormat()">Switch Format</button>
+    <button class="btn" onclick="setAlarm()">Set Alarm</button>
+
+    <select id="themePicker" onchange="changeTheme()">
+        <option value="#333">Default</option>
+        <option value="#f44336">Red</option>
+        <option value="#4CAF50">Green</option>
+        <option value="#2196F3">Blue</option>
+        <option value="#FFEB3B">Yellow</option>
+    </select>
+
+    <script>
+        function updateClock() {
+            fetch('/get_time')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('clock').innerText = data.time;
+                    document.getElementById('date').innerText = data.date;
+                });
+        }
+
+        function switchFormat() {
+            fetch('/switch_format')
+                .then(() => updateClock());
+        }
+
+        function setAlarm() {
+            const alarmTime = prompt("Enter alarm time (HH:MM AM/PM):");
+            if (alarmTime) {
+                fetch('/set_alarm', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `alarm_time=${alarmTime}`,
+                }).then(response => response.json())
+                  .then(data => alert("Alarm set!"));
+            }
+        }
+
+        function changeTheme() {
+            const theme = document.getElementById('themePicker').value;
+            document.body.style.backgroundColor = theme;
+            fetch('/change_theme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `theme=${theme}`,
+            });
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
